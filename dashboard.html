@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FacultyFlow - Daily Attendance Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background: #f9fafc;
+  position: relative;
+  min-height: 100vh;
+}
+#bgCanvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.32;
+}
+.navbar {
+  width: 100%;
+  background: #178d85;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  height: 60px;
+  box-shadow: 0 4px 20px #08948c13;
+  position: fixed;
+  top: 0; z-index: 10;
+}
+.navbar .logo {
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  margin-right:36px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.navbar nav {
+  display: flex;
+  gap: 34px;
+  flex-grow: 1;
+}
+.navbar nav a {
+  color: #dcf7f5;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.07rem;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: background-color 0.3s, color 0.2s;
+}
+.navbar nav a:hover, .navbar nav a.active {
+  color: #13a493;
+  background-color: #e7f8f7;
+}
+.navbar .user-info {
+  font-size: 1.01rem;
+  opacity: .9;
+  margin-left: 18px;
+  user-select: none;
+  color: #e2fcfd;
+}
+main {
+  margin: 98px auto 48px auto;
+  max-width: 1050px;
+  padding: 0 18px;
+  position: relative;
+  z-index: 2;
+}
+.dashboard-card {
+  background: #fff;
+  border-radius: 24px;
+  margin: 0 auto 38px auto;
+  box-shadow: 0 8px 36px #04b0a71c;
+  padding: 36px 38px 28px 38px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 330px;
+  max-width: 980px;
+  text-align: center;
+  animation: dashboardPopUp 0.7s cubic-bezier(.22,.68,.4,1.08);
+}
+@keyframes dashboardPopUp { 0% { opacity: 0; transform: translateY(70px) scale(.93);}   80% { transform: translateY(-6px) scale(1.03);}  100% { opacity: 1; transform: none;} }
+.dashboard-title {
+  font-size: 2.32rem;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+  color: #178d85;
+  letter-spacing: 1px;
+  text-align: center;
+  text-shadow: 0 0 18px #6eebe024;
+  user-select: none;
+}
+.dashboard-desc {
+  font-size: 1.13rem;
+  color: #39798d;
+  opacity: .84;
+  font-weight: 500;
+  margin-bottom: 22px;
+  margin-top: 0;
+  letter-spacing: .1px;
+}
+.summary-tiles {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 34px;
+  width: 100%;
+  max-width: 700px;
+}
+.tile {
+  flex: 1 1 210px;
+  padding: 32px 10px 19px 10px;
+  border-radius: 17px;
+  box-shadow: 0 0 16px #b6ede752;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1.19rem;
+  background: #e6f4fa;
+  outline: none;
+  animation: tilePop 0.82s cubic-bezier(.15,.6,.38,1.1);
+}
+@keyframes tilePop { 0% { opacity:0; transform: scale(.82);} 60% { transform: scale(1.09);} 100% { opacity:1; transform: none;} }
+.tile.tile-present {
+  background: #e6fae8; color: #138a37;
+}
+.tile.tile-absent {
+  background: #ffeaea; color: #ba232b;
+}
+.tile.tile-total {
+  background: #e2f3fa; color: #1a628d;
+}
+.tile-number {
+  font-size: 2.34em; line-height: 1.5; font-weight: 900; margin-bottom: 6px; letter-spacing: 0.01em; 
+  text-shadow: 0 4px 15px #ccebe930; 
+  font-family: 'Roboto', 'Arial', sans-serif;
+}
+.tile-label {
+  font-size: 1.07em; opacity: .98; font-weight: 600; letter-spacing: .07em;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  font-size: 1.12rem;
+  justify-content: center;
+}
+.controls label { font-weight: 700;}
+.controls select { padding: 10px 19px; border-radius: 8px; border: 1.4px solid #5998cf51; font-size: 1.04rem; background: #e6eafd; color: #263565; font-family: inherit; }
+#curTime { margin-left: auto; font-size: 1.12rem; font-family: 'Roboto Mono', monospace; color: #4266ce; font-weight: 600;}
+.table-wrap { background: white; border-radius: 15px; padding: 10px 5px 14px 5px; box-shadow: 0 0 29px #03c7bb07; overflow-x: auto; margin-bottom: 36px; }
+table { border-collapse: collapse; width: 100%; min-width: 660px; background: #fff; margin: 0 auto; }
+th, td { padding: 16px 20px; font-size: 1.07rem; border-bottom: 1px solid #e0e9f7; text-align: left; font-weight: 500;}
+th {
+  background: #1d8aad;
+  color: white;
+  position: sticky;
+  top: 0; z-index: 10;
+  user-select: none;
+  letter-spacing: 0.85px;
+  font-weight: 700;
+  font-size: 1.12rem;
+}
+tr:hover { background: #eef7ff;}
+td.present { color: #13a64c; font-weight: 700; }
+td.absent { color: #d22c2c; font-weight: 700; }
+.absent-row { background: #fff1f1 !important; }
+#qr-section {
+  margin-top: 30px; max-width: 900px;
+}
+#qr-section h3 {
+  font-size: 1.35rem; font-weight: 700; color: #354a90; margin-bottom: 18px; user-select: none;
+}
+#presentQrContainer {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+  gap: 20px;
+  background: #e3e9ff;
+  padding: 22px 16px;
+  border-radius: 14px;
+  box-shadow: 0 0 28px #5775ff33;
+  min-height: 140px;
+}
+.qr-card {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 5px 14px #4c66d925;
+  padding: 12px;
+  text-align: center;
+  user-select: all;
+}
+.qr-label {
+  margin-top: 8px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #354a90;
+}
+@media (max-width: 800px) {
+  main { padding: 0 2vw;}
+  .dashboard-card { padding: 16px 2vw;}
+  .summary-tiles { flex-direction: column; gap: 20px;}
+  table { font-size: .94rem;}
+  th,td { padding: 10px 8px;}
+}
+canvas#bgCanvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+}
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+
+<div class="navbar" role="navigation" aria-label="Primary navigation">
+  <span class="logo">FacultyFlow</span>
+  <nav>
+  <a href="dashboard.html" class="active">Dashboard</a>
+  <a href="device.html">Devices</a>
+  <a href="location.html">Locations</a>
+  <a href="scan.html">Scans</a>
+  <a href="student.html">Students</a>
+  <a href="reports.html">Reports</a>
+  <a href="settings.html">Settings</a>
+</nav>
+
+  <span class="user-info" aria-label="Logged in user and school">Teapot Elementary | Dan | System Manager</span>
+</div>
+<main role="main" tabindex="-1">
+  <div class="dashboard-card">
+    <h1 class="dashboard-title">Daily Attendance Dashboard</h1>
+    <div class="dashboard-desc">Manage student attendance, QR scans, and more from one place.</div>
+    <div class="summary-tiles">
+      <div class="tile tile-total">
+        <div id="totalTile" class="tile-number">0</div>
+        <span class="tile-label">Total Students</span>
+      </div>
+      <div class="tile tile-present">
+        <div id="presentTile" class="tile-number">0</div>
+        <span class="tile-label">Present</span>
+      </div>
+      <div class="tile tile-absent">
+        <div id="absentTile" class="tile-number">0</div>
+        <span class="tile-label">Absent</span>
+      </div>
+    </div>
+    <div class="controls">
+      <label for="semesterSelect"><strong>Choose Semester:</strong></label>
+      <select id="semesterSelect" aria-label="Choose Semester">
+        <option value="1">Semester 1 (Year 1)</option>
+        <option value="2">Semester 2 (Year 1)</option>
+        <option value="3" selected>Semester 3 (Year 2)</option>
+        <option value="4">Semester 4 (Year 2)</option>
+        <option value="5">Semester 5 (Year 3)</option>
+        <option value="6">Semester 6 (Year 3)</option>
+        <option value="7">Semester 7 (Year 4)</option>
+        <option value="8">Semester 8 (Year 4)</option>
+      </select>
+      <span id="curTime" aria-live="polite">--:--:--</span>
+    </div>
+    <div id="classTimeLabel" style="margin:8px 0 16px 0;text-align:center;font-size:1.08rem;color:#148981;"></div>
+    <div class="table-wrap">
+      <table aria-label="Attendance Table" role="table" aria-describedby="tableDesc">
+        <caption id="tableDesc" class="visually-hidden">Attendance list for students in selected semester</caption>
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>Last Name</th>
+            <th>First Name</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="attendanceTbody"></tbody>
+      </table>
+    </div>
+    <section id="qr-section" aria-label="Present Students QR Codes">
+      <h3>Present Students - QR Codes</h3>
+      <button id="generateQrBtn" aria-label="Generate QR Codes for Students" style="background:#198b9b;color:#fff;font-weight:600;padding:12px 24px;border:none;border-radius:11px;cursor:pointer; margin-bottom:14px;">
+        Generate QR Codes
+      </button>
+      <div id="presentQrContainer" aria-live="polite" aria-atomic="true"></div>
+    </section>
+  </div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  // ----------- THEME NODE ANIMATION -----------
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let width, height, nodes = [];
+  const nodeCount = 38, maxDist = 140;
+
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  nodes = [];
+  for (let i = 0; i < nodeCount; i++) {
+    nodes.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 1.35,
+      vy: (Math.random() - 0.5) * 1.35,
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    for (let i = 0; i < nodeCount; i++) {
+      for (let j = i + 1; j < nodeCount; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxDist) {
+          ctx.strokeStyle = `rgba(44, 98, 128,${1 - dist / maxDist})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    nodes.forEach((n) => {
+      n.x += n.vx;
+      n.y += n.vy;
+      if (n.x < 0 || n.x > width) n.vx *= -1;
+      if (n.y < 0 || n.y > height) n.vy *= -1;
+      ctx.fillStyle = '#198b9b';
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+
+  // ---------------- DASHBOARD SCRIPTS ---------------
+
+  const semesterData = {
+    3: { total: 20, students: [] }
+  };
+
+  function updateCurTime() {
+    const el = document.getElementById('curTime');
+    const now = new Date();
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    hours = hours % 12 || 12;
+    el.textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
+  }
+  setInterval(updateCurTime, 1000);
+  updateCurTime();
+
+  function updateSummaryTiles(total, present, absent) {
+    document.getElementById('totalTile').textContent = total;
+    document.getElementById('presentTile').textContent = present;
+    document.getElementById('absentTile').textContent = absent;
+  }
+
+  function renderAttendanceTable(students) {
+    const tbody = document.getElementById('attendanceTbody');
+    tbody.innerHTML = '';
+    students.forEach(student => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${student.roll}</td>
+        <td>${student.lastName}</td>
+        <td>${student.firstName}</td>
+        <td class="present">Present</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Fetch connected students from Python backend
+  async function fetchConnectedStudents() {
+    try {
+      const response = await fetch('http://localhost:8080/api/connected_students');
+      if (!response.ok) throw new Error('Failed to fetch connected students');
+      const data = await response.json();
+      return data.connected_students || [];
+    } catch (err) {
+      console.error('Error fetching students:', err);
+      return [];
+    }
+  }
+
+  // Fetch user emails from Node.js backend for QR code saving
+  async function fetchUserEmails() {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/user-emails', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch user emails');
+      return await response.json();
+    } catch (err) {
+      console.error('Error fetching user emails:', err);
+      return [];
+    }
+  }
+
+  // Update attendance display
+  async function updateAttendance() {
+    const semester = document.getElementById('semesterSelect').value;
+    const students = await fetchConnectedStudents();
+    const presentStudents = students.filter(s => s.attendance_marked);
+
+    const filteredStudents = presentStudents.map(s => ({
+      roll: s.student_info.roll || 'N/A',
+      lastName: s.student_info.name ? s.student_info.name.split(' ').slice(1).join(' ') : 'Last',
+      firstName: s.student_info.name ? s.student_info.name.split(' ')[0] : 'First'
+    }));
+
+    let totalCount = semesterData[semester] && semesterData[semester].total;
+    if (!totalCount) totalCount = filteredStudents.length;
+    renderAttendanceTable(filteredStudents);
+    updateSummaryTiles(totalCount, filteredStudents.length, totalCount - filteredStudents.length);
+
+    let timeLabel = '';
+    if (semester == 3) timeLabel = "(2nd Year, Timing: 9:20 AM – 12:40 PM)";
+    else if (semester == 2) timeLabel = "(1st Year, Timing: 12:00 PM – 3:20 PM)";
+    else if (semester == 1) timeLabel = "(1st Year, Timing: 8:20 AM – 11:40 AM)";
+    document.getElementById('classTimeLabel').textContent = timeLabel;
+  }
+
+  // Semester change triggers update
+  document.getElementById('semesterSelect').addEventListener('change', () => {
+    updateAttendance();
+    document.getElementById('presentQrContainer').innerHTML = '';
+  });
+
+  // Generate and save QR codes for connected students
+  document.getElementById('generateQrBtn').addEventListener('click', async () => {
+    const container = document.getElementById('presentQrContainer');
+    container.innerHTML = 'Loading student QR codes...';
+
+    const students = await fetchConnectedStudents();
+    if (!students.length) {
+      container.innerHTML = '<div style="color:#c23b3d; font-size:1.2rem;">No connected students detected.</div>';
+      return;
+    }
+
+    const userEmails = await fetchUserEmails();
+    // Map username to emails
+    const emailMap = {};
+    userEmails.forEach(user => {
+      emailMap[user.username] = user.email;
+    });
+
+    const token = localStorage.getItem('token'); // JWT token
+
+    container.innerHTML = '';
+    for (const student of students) {
+      const card = document.createElement('div');
+      card.className = 'qr-card';
+
+      const qrDiv = document.createElement('div');
+      card.appendChild(qrDiv);
+
+      const info = student.student_info || {};
+      const location = info.classroom || "Unknown";
+      const qrContent = `ID:${info.roll || "N/A"}|Loc:${location}`;
+
+      // Generate QR code
+      new QRCode(qrDiv, {
+        text: qrContent,
+        width: 110,
+        height: 110,
+        colorDark: '#28386a',
+        colorLight: '#e7eefb',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      // Wait to ensure QR generation
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Get QR image as base64
+      const canvas = qrDiv.querySelector('canvas');
+      const qrDataUrl = canvas.toDataURL('image/png');
+
+      const email = emailMap[info.roll] || '';
+
+      if (!email) {
+        console.warn(`Email not found for username ${info.roll}, skipping QR save`);
+      } else {
+        try {
+          const res = await fetch('http://localhost:5000/api/generate-qr', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              username: info.roll,
+              email: email,
+              qr_data: qrDataUrl
+            }),
+          });
+          if (!res.ok) throw new Error('Failed to save QR code');
+          console.log(`QR code saved for ${info.roll}`);
+        } catch (err) {
+          console.error(`Failed to save QR code for ${info.roll}:`, err);
+        }
+      }
+
+      const label = document.createElement('div');
+      label.className = 'qr-label';
+      label.textContent = `${info.name || 'No Name'} (${info.roll || 'No Roll'}) - ${location}`;
+      card.appendChild(label);
+
+      container.appendChild(card);
+    }
+  });
+
+  // Auto refresh attendance every 15 seconds
+  setInterval(updateAttendance, 15000);
+  document.addEventListener('DOMContentLoaded', updateAttendance);
+
+</script>
+
+
+</body>
+</html>

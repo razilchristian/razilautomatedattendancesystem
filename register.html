@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register - MarkMyDay</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(120deg, #d1f5f0, #fdebd3, #c7ecee);
+      background-size: 300% 300%;
+      animation: gradientMove 8s ease-in-out infinite alternate;
+    }
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+    canvas {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 0; display: block;
+    }
+    body, .centerer {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .register-container {
+      position: relative;
+      z-index: 1;
+      width: 350px;
+      max-width: 96vw;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.93);
+      padding: 24px 18px 20px 18px;
+      border-radius: 20px;
+      box-shadow: 0 5px 24px rgba(38, 50, 100, 0.13);
+      text-align: center;
+      backdrop-filter: blur(10px);
+      transition: box-shadow 0.3s;
+    }
+    .register-container:hover { box-shadow: 0 8px 40px rgba(38,50,100,0.20);}
+    h1 {
+      font-size: 1.5rem; margin-bottom: 7px;
+      font-weight: 700; color: #006d77; letter-spacing: 1px;
+    }
+    h2 {
+      font-size: 1rem; color: #b7791f;
+      font-weight: 500; margin-bottom: 22px; letter-spacing: 0.5px;
+    }
+    label {
+      display: block; text-align: left;
+      font-size: 0.88rem; font-weight: 600; margin-bottom: 5px;
+      color: #374151;
+    }
+    input[type="text"], input[type="email"] {
+      width: 100%;
+      padding: 10px 13px;
+      border-radius: 14px;
+      border: 2px solid rgba(0, 109, 119, 0.25);
+      background: rgba(255,255,255,0.99);
+      color: #1f2937; font-size: 1rem;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+      box-shadow: inset 0 0 6px rgba(0,109,119,0.06);
+    }
+    input[type="text"]:focus, input[type="email"]:focus {
+      border-color: #006d77;
+      box-shadow: 0 0 7px rgba(0,109,119,0.15);
+      outline: none;
+      background: #fff;
+    }
+    button {
+      width: 100%;
+      padding: 11px;
+      font-size: 1.06rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 18px;
+      color: #fff;
+      background: linear-gradient(90deg, #006d77, #83c5be);
+      cursor: pointer;
+      box-shadow: 0 0 9px rgba(0,109,119,0.17);
+      margin-top: 10px;
+      margin-bottom: 6px;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    button:hover {
+      transform: translateY(-1px) scale(1.015);
+      box-shadow: 0 0 12px rgba(0,109,119,0.23);
+    }
+    .msg {
+      font-size: 0.88rem;
+      min-height: 1rem;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      color: #dc2626;
+      user-select: text;
+      min-height: 20px;
+    }
+    .msg.success { color: #15803d; }
+    p { margin-top: 10px; font-size: 0.93rem; }
+    p a { color: #006d77; text-decoration: underline; font-weight: 600; user-select: text; }
+    @media (max-width:500px) {
+      .register-container { padding: 3vw 2vw; width: 98vw; min-width: 0; }
+      h1 { font-size: 1.2rem; }
+      h2 { font-size: 0.93rem;}
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <div class="centerer">
+  <div class="register-container" role="main" aria-label="Register account form">
+    <h1 style="margin-bottom:0;">Create Account</h1>
+    <h2 style="margin-bottom:18px;">Register for <strong>MARKMYDAY</strong> attendance portal</h2>
+    <form id="registerForm" aria-describedby="registerMsg" novalidate>
+      <label for="studentId">Student ID</label>
+      <input type="text" id="studentId" name="studentId" placeholder="Enter your student ID" autocomplete="username" required aria-required="true" />
+      <label for="firstName">First Name</label>
+      <input type="text" id="firstName" name="firstName" placeholder="Enter your first name" required aria-required="true" />
+      <label for="lastName">Last Name</label>
+      <input type="text" id="lastName" name="lastName" placeholder="Enter your last name" required aria-required="true" />
+      <label for="branch">Branch</label>
+      <input type="text" id="branch" name="branch" placeholder="Enter your branch" required aria-required="true" />
+      <label for="classroom">Classroom</label>
+      <input type="text" id="classroom" name="classroom" placeholder="Enter your classroom" required aria-required="true" />
+      <label for="macAddress">Device MAC Address</label>
+      <input type="text" id="macAddress" name="macAddress" placeholder="Enter your device MAC address" required aria-required="true" />
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" placeholder="Enter your email address" autocomplete="email" required aria-required="true" />
+      <div id="registerMsg" class="msg" role="alert" aria-live="assertive"></div>
+      <button type="submit" aria-label="Submit registration form">Register</button>
+    </form>
+    <p>Already have an account? <a href="login.html">Login</a></p>
+  </div>
+  </div>
+<script>
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let width, height;
+  let nodes = [];
+  const nodeCount = 30;
+  const maxDist = 110;
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  for (let i = 0; i < nodeCount; i++) {
+    nodes.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 1.1,
+      vy: (Math.random() - 0.5) * 1.1
+    });
+  }
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    for (let i = 0; i < nodeCount; i++) {
+      for (let j = i + 1; j < nodeCount; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxDist) {
+          ctx.strokeStyle = 'rgba(0,109,119,' + (1 - dist / maxDist) + ')';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    for (let i = 0; i < nodeCount; i++) {
+      const n = nodes[i];
+      n.x += n.vx;
+      n.y += n.vy;
+      if (n.x < 0 || n.x > width) n.vx *= -1;
+      if (n.y < 0 || n.y > height) n.vy *= -1;
+      ctx.fillStyle = '#006d77';
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  const registerForm = document.getElementById('registerForm');
+  const registerMsg = document.getElementById('registerMsg');
+
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    registerMsg.textContent = '';
+    registerMsg.classList.remove('success');
+
+    const studentId = registerForm.studentId.value.trim();
+    const firstName = registerForm.firstName.value.trim();
+    const lastName = registerForm.lastName.value.trim();
+    const branch = registerForm.branch.value.trim();
+    const classroom = registerForm.classroom.value.trim();
+    const macAddress = registerForm.macAddress.value.trim();
+    const email = registerForm.email.value.trim();
+
+    if (!studentId) { registerMsg.textContent = "Please enter your Student ID."; return; }
+    if (!firstName) { registerMsg.textContent = "Please enter your First Name."; return; }
+    if (!lastName) { registerMsg.textContent = "Please enter your Last Name."; return; }
+    if (!branch) { registerMsg.textContent = "Please enter your Branch."; return; }
+    if (!classroom) { registerMsg.textContent = "Please enter your Classroom."; return; }
+    if (!macAddress) { registerMsg.textContent = "Please enter your Device MAC Address."; return; }
+    if (!email) { registerMsg.textContent = "Please enter your Email Address."; return; }
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) { registerMsg.textContent = "Please enter a valid email address."; return; }
+
+    const fullname = `${firstName} ${lastName}`;
+    try {
+      const response = await fetch('http://localhost:5000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: studentId,
+          fullname: fullname,
+          email: email,
+          branch: branch,
+          classroom: classroom,
+          mac_address: macAddress
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        registerMsg.textContent = data.error || 'Registration failed. Try another ID/email.';
+        return;
+      }
+      registerMsg.classList.add('success');
+      registerMsg.textContent = "Registration successful! Redirecting to login...";
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 1200);
+    } catch (err) {
+      registerMsg.textContent = "Network error, please try again.";
+    }
+  });
+</script>
+</body>
+</html>

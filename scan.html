@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scan - FacultyFlow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+  body {
+    margin: 0; min-height: 100vh; font-family: 'Roboto', sans-serif;
+    background: #f5f8fa;
+    color: #223365;
+    position: relative;
+    overflow-x: hidden;
+  }
+  canvas#bgCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.32;
+  }
+  .navbar {
+    width: 100%;
+    background: #178d85;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    height: 60px;
+    box-shadow: 0 4px 20px #08948c13;
+    position: fixed;
+    top: 0; z-index: 10;
+  }
+  .navbar .logo {
+    font-weight: 700;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    margin-right: 36px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .navbar nav {
+    display: flex;
+    gap: 34px;
+    flex-grow: 1;
+  }
+  .navbar nav a {
+    color: #dcf7f5;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1.07rem;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.2s;
+  }
+  .navbar nav a:hover, .navbar nav a.active {
+    color: #13a493;
+    background-color: #e7f8f7;
+  }
+  .navbar .user-info {
+    font-size: 1.01rem;
+    opacity: .9;
+    margin-left: 18px;
+    user-select: none;
+    color: #e2fcfd;
+  }
+  main {
+    margin: 90px auto 48px auto;
+    max-width: 980px;
+    padding: 0 18px;
+    position: relative;
+    z-index: 2;
+    color: #1e2f59;
+  }
+  h1 {
+    font-weight: 700;
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    color: #178d85;
+    text-align: center;
+    user-select: none;
+  }
+  form#scanForm {
+    background: #e4fbf9;
+    border-radius: 22px;
+    padding: 28px 36px;
+    box-shadow: 0 0 36px #0fc4a07d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 40px;
+  }
+  label[for="scanInput"] {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #135450;
+    user-select: none;
+  }
+  input#scanInput {
+    width: 100%;
+    max-width: 480px;
+    font-size: 1.15rem;
+    padding: 14px 18px;
+    border: 2px solid #0fbca7cc;
+    border-radius: 16px;
+    outline-offset: -3px;
+    user-select: text;
+    transition: border-color 0.3s ease, box-shadow 0.25s ease;
+  }
+  input#scanInput:focus {
+    border-color: #0a8a75;
+    box-shadow: 0 0 22px #14baa3cc;
+  }
+  button#submitScan {
+    background-color: #0db89e;
+    color: #00433a;
+    font-weight: 700;
+    padding: 14px 32px;
+    font-size: 1.25rem;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 0 30px #0cc2a1cc;
+    transition: background-color 0.3s ease, transform 0.17s ease;
+  }
+  button#submitScan:hover {
+    background-color: #0a8c79;
+    transform: scale(1.05);
+  }
+  button#submitScan:active {
+    transform: scale(0.96);
+  }
+  #scanFeedback {
+    font-size: 1.1rem;
+    min-height: 24px;
+    font-weight: 600;
+    user-select: none;
+    color: #237447;
+    height: 24px;
+  }
+  .results-table-wrap {
+    max-height: 360px;
+    overflow-y: auto;
+    border-radius: 16px;
+    box-shadow: 0 0 30px #15856922;
+    background: #e1faf4;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+    font-size: 1.03rem;
+  }
+  thead {
+    background: #12b59b;
+    color: #e3faf5;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  th, td {
+    padding: 14px 18px;
+    border-bottom: 1px solid #b1e0d9;
+    text-align: left;
+  }
+  tr:hover {
+    background-color: #bbecdf;
+  }
+  .status-present {
+    color: #1f7a46;
+    font-weight: 700;
+  }
+  .status-absent {
+    color: #b12b2b;
+    font-weight: 700;
+  }
+  .status-tardy {
+    color: #ab790e;
+    font-weight: 700;
+  }
+  @media (max-width: 700px) {
+    main {
+      max-width: 95vw;
+      margin: 90px auto 40px auto;
+      padding: 0 10px;
+    }
+    table {
+      min-width: 600px;
+      font-size: 0.95rem;
+    }
+    label[for="scanInput"] {
+      font-size: 1.1rem;
+    }
+    button#submitScan {
+      font-size: 1.1rem;
+      padding: 12px 26px;
+    }
+  }
+</style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <header class="navbar" role="navigation" aria-label="Primary navigation">
+    <span class="logo">Attend Core</span>
+    <nav>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="device.html">Devices</a>
+      <a href="location.html">Locations</a>
+      <a href="scan.html" class="active" aria-current="page">Scans</a>
+      <a href="student.html">Students</a>
+      <a href="reports.html">Reports</a>
+      <a href="settings.html">Settings</a>
+    </nav>
+    <span class="right-info">Teapot Elementary | Dan | System Manager</span>
+  </header>
+  <main role="main" tabindex="-1">
+    <h1>Scan Student Attendance</h1>
+    <form id="scanForm" aria-label="Student attendance scan form">
+      <label for="scanInput">Scan Student QR Code</label>
+      <input type="text" id="scanInput" autocomplete="off" autofocus placeholder="Scan or enter QR code" aria-describedby="scanDesc" />
+      <div id="scanFeedback" role="alert" aria-live="assertive"></div>
+      <button type="submit" id="submitScan">Mark Present</button>
+    </form>
+    <div class="results-table-wrap" aria-live="polite" aria-atomic="true">
+      <table>
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>Class</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="scanResultsTbody">
+          <!-- scan results -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+<script>
+  const scanForm = document.getElementById('scanForm');
+  const scanInput = document.getElementById('scanInput');
+  const scanFeedback = document.getElementById('scanFeedback');
+  const scanResultsTbody = document.getElementById('scanResultsTbody');
+
+  let scanResults = [];
+
+  function renderScanResults() {
+    scanResultsTbody.innerHTML = '';
+    for(const record of scanResults) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${record.studentId}</td>
+        <td>${record.className}</td>
+        <td>${record.date}</td>
+        <td>${record.time}</td>
+        <td class="status-${record.status.toLowerCase()}">${record.status}</td>
+      `;
+      scanResultsTbody.appendChild(tr);
+    }
+  }
+
+  scanForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = scanInput.value.trim();
+    if(input.length === 0) {
+      scanFeedback.textContent = "Please scan or enter a valid Student QR code.";
+      scanFeedback.style.color = "#b12b2b";
+      return;
+    }
+
+    const now = new Date();
+    const date = now.toISOString().split('T')[0];
+    const time = now.toLocaleTimeString([], {hour12:true, hour:'2-digit', minute:'2-digit'});
+
+    const alreadyMarked = scanResults.some(r => r.studentId === input && r.date === date);
+    if(alreadyMarked) {
+      scanFeedback.textContent = `Attendance already marked for student: ${input}`;
+      scanFeedback.style.color = "#bc7a03";
+      scanInput.value = '';
+      return;
+    }
+
+    const className = "B.Tech 3rd Semester";
+
+    scanResults.unshift({
+      studentId: input,
+      className,
+      date,
+      time,
+      status: 'Present'
+    });
+    if(scanResults.length > 10) scanResults.pop();
+
+    scanFeedback.textContent = `Marked present: ${input}`;
+    scanFeedback.style.color = "#1f7a46";
+
+    renderScanResults();
+    scanInput.value = '';
+    scanInput.focus();
+  });
+
+  window.onload = () => {
+    scanInput.focus();
+    scanFeedback.textContent = '';
+  };
+
+  // Background Node Animation
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let width, height, nodes = [];
+  const nodeCount = 38, maxDist = 140;
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  nodes = [];
+  for (let i = 0; i < nodeCount; i++) {
+    nodes.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 1.35,
+      vy: (Math.random() - 0.5) * 1.35,
+    });
+  }
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    for (let i = 0; i < nodeCount; i++) {
+      for (let j = i + 1; j < nodeCount; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxDist) {
+          ctx.strokeStyle = `rgba(0,109,119,${1 - dist / maxDist})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    nodes.forEach((n) => {
+      n.x += n.vx;
+      n.y += n.vy;
+      if (n.x < 0 || n.x > width) n.vx *= -1;
+      if (n.y < 0 || n.y > height) n.vy *= -1;
+      ctx.fillStyle = '#198b9b';
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+</script>
+</body>
+</html>

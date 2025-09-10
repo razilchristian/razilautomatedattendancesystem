@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Settings - FacultyFlow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: 'Roboto', sans-serif;
+    background: #f5f8fa;
+    color: #223365;
+    position: relative;
+    overflow-x: hidden;
+  }
+  canvas#bgCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.32;
+  }
+  .navbar {
+    width: 100%;
+    background: #178d85;
+    color: #e4fbf9;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    height: 60px;
+    box-shadow: 0 4px 20px #08948c13;
+    position: fixed;
+    top: 0;
+    z-index: 10;
+  }
+  .navbar .logo {
+    font-weight: 700;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    margin-right: 36px;
+    user-select: none;
+  }
+  nav {
+    display: flex;
+    gap: 34px;
+    flex-grow: 1;
+  }
+  nav a {
+    color: #dcf7f5;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1.07rem;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.2s;
+  }
+  nav a:hover, nav a.active {
+    color: #13a493;
+    background-color: #e7f8f7;
+  }
+  .navbar .right-info {
+    margin-left: auto;
+    font-size: 1.01rem;
+    opacity: .9;
+    user-select: none;
+  }
+  main {
+    margin: 90px auto 48px auto;
+    max-width: 900px;
+    padding: 0 20px 40px 20px;
+    position: relative;
+    z-index: 2;
+    color: #223365;
+  }
+  h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin-bottom: 28px;
+    user-select: none;
+    color: #178d85;
+    text-align: center;
+  }
+  section {
+    background: #e4fbf9;
+    border-radius: 22px;
+    padding: 32px 40px;
+    box-shadow: 0 0 36px #0fc4a099;
+    margin-bottom: 30px;
+  }
+  section h2 {
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 24px;
+    color: #11715b;
+  }
+  label {
+    display: block;
+    color: #165346;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 12px;
+    user-select: none;
+  }
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 16px;
+    border: 2px solid #0fc4a086;
+    font-size: 1.12rem;
+    margin-bottom: 22px;
+    font-family: 'Roboto', sans-serif;
+    background-color: #3252a7;
+    color: #d8dcf1e6;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  select:focus {
+    outline: none;
+    background-color: #3f65dc;
+    border-color: #78a3ff;
+    box-shadow: 0 0 20px #4b83ffcc;
+    color: white;
+  }
+  .toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .toggle-group input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+  .toggle-group label {
+    margin: 0;
+    cursor: pointer;
+    user-select: none;
+    color: #236458cc;
+    font-weight: 600;
+  }
+  button.save-btn {
+    background-color: #0db89e;
+    padding: 14px 0;
+    width: 100%;
+    font-weight: 700;
+    font-size: 1.22rem;
+    border-radius: 28px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 0 28px #0cc2a1cc;
+    transition: background-color 0.3s ease, transform 0.15s ease;
+  }
+  button.save-btn:hover {
+    background-color: #0a8c79;
+    transform: scale(1.05);
+  }
+  button.save-btn:active {
+    transform: scale(0.95);
+  }
+  @media (max-width: 600px) {
+    main {
+      margin: 90px 14px 48px 14px;
+      padding: 0 14px 40px 14px;
+    }
+    section {
+      padding: 22px 18px;
+    }
+  }
+</style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <div class="navbar" role="navigation" aria-label="Primary navigation">
+    <span class="logo">Attend Core</span>
+    <nav>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="device.html">Devices</a>
+      <a href="location.html">Locations</a>
+      <a href="scan.html">Scans</a>
+      <a href="student.html">Students</a>
+      <a href="reports.html">Reports</a>
+      <a href="settings.html" class="active" aria-current="page">Settings</a>
+    </nav>
+    <span class="right-info">Teapot Elementary | Dan | System Manager</span>
+  </div>
+  <main role="main" tabindex="-1">
+    <h1>Settings</h1>
+    <section aria-labelledby="profileSettingsTitle">
+      <h2 id="profileSettingsTitle">Profile Settings</h2>
+      <form id="profileForm">
+        <label for="userNameInput">Full Name</label>
+        <input type="text" id="userNameInput" placeholder="Enter your full name" required aria-required="true" />
+        <label for="userEmailInput">Email Address</label>
+        <input type="email" id="userEmailInput" placeholder="Enter your email" required aria-required="true" />
+        <label for="userPasswordInput">Password</label>
+        <input type="password" id="userPasswordInput" placeholder="Enter new password" aria-required="false" />
+        <small style="color:#a0c5c1;">Leave blank to keep current password</small>
+        <button class="save-btn" type="submit">Save Profile</button>
+      </form>
+    </section>
+    <section aria-labelledby="systemSettingsTitle">
+      <h2 id="systemSettingsTitle">System Preferences</h2>
+      <form id="systemForm">
+        <div class="toggle-group">
+          <input type="checkbox" id="emailNotificationsToggle" />
+          <label for="emailNotificationsToggle" tabindex="0">Enable email notifications</label>
+        </div>
+        <div class="toggle-group">
+          <input type="checkbox" id="darkModeToggle" />
+          <label for="darkModeToggle" tabindex="0">Dark Mode</label>
+        </div>
+        <div class="toggle-group">
+          <label for="defaultBatchSelect">Default Batch</label>
+          <select id="defaultBatchSelect" aria-label="Default batch selection">
+            <option value="morning">Morning</option>
+            <option value="evening">Evening</option>
+          </select>
+        </div>
+        <button class="save-btn" type="submit">Save Preferences</button>
+      </form>
+    </section>
+  </main>
+<script>
+  const profileForm = document.getElementById('profileForm');
+  const systemForm = document.getElementById('systemForm');
+  profileForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const fullName = document.getElementById('userNameInput').value.trim();
+    const email = document.getElementById('userEmailInput').value.trim();
+    if(!fullName || !email) {
+      alert('Please fill all required fields!');
+      return;
+    }
+    alert('Profile settings saved successfully!');
+    // Implement actual saving logic here or API call
+  });
+  systemForm.addEventListener('submit', e => {
+    e.preventDefault();
+    alert('System preferences saved successfully!');
+    // Implement actual saving logic here or API call
+  });
+
+  // Background node animation
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let width, height, nodes = [];
+  const nodeCount = 38, maxDist = 140;
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  nodes = [];
+  for(let i=0; i<nodeCount; i++){
+    nodes.push({
+      x: Math.random()*width,
+      y: Math.random()*height,
+      vx: (Math.random()-0.5)*1.35,
+      vy: (Math.random()-0.5)*1.35
+    });
+  }
+  function animate(){
+    ctx.clearRect(0,0,width,height);
+    for(let i=0; i<nodeCount; i++){
+      for(let j=i+1; j<nodeCount; j++){
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist < maxDist){
+          ctx.strokeStyle = `rgba(0,109,119,${1-dist/maxDist})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    nodes.forEach(n=>{
+      n.x += n.vx;
+      n.y += n.vy;
+      if(n.x < 0 || n.x > width) n.vx *= -1;
+      if(n.y < 0 || n.y > height) n.vy *= -1;
+      ctx.fillStyle = '#198b9b';
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,4,0,Math.PI*2);
+      ctx.fill();
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+</script>
+</body>
+</html>

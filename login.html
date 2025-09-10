@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login - MarkMyDay</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      background: linear-gradient(120deg, #d1f5f0, #fdebd3, #c7ecee);
+      background-size: 300% 300%;
+      animation: gradientMove 8s ease-in-out infinite alternate;
+    }
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 0;
+    }
+    .login-container {
+      position: relative;
+      z-index: 1;
+      width: 380px;
+      max-width: 90%;
+      margin: auto;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.7);
+      padding: 40px 30px;
+      border-radius: 18px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: #006d77;
+    }
+    h2 {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #b7791f;
+      margin-bottom: 28px;
+    }
+    label {
+      display: block;
+      text-align: left;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 2px solid rgba(0, 109, 119, 0.3);
+      background: rgba(255, 255, 255, 0.8);
+      color: #1f2937;
+      font-size: 1rem;
+      margin-bottom: 18px;
+      transition: all 0.3s ease;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus {
+      border-color: #006d77;
+      box-shadow: 0 0 12px rgba(0, 109, 119, 0.4);
+      outline: none;
+      background: rgba(255, 255, 255, 0.95);
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      color: #ffffff;
+      background: linear-gradient(90deg, #006d77, #83c5be);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 14px rgba(0, 109, 119, 0.4);
+    }
+    button:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 0 18px rgba(0, 109, 119, 0.6);
+    }
+    .msg {
+      font-size: 0.85rem;
+      min-height: 1rem;
+      margin-top: 8px;
+      color: #dc2626;
+    }
+    .link {
+      display: block;
+      margin-top: 10px;
+      font-size: 0.96rem;
+    }
+    .link a {
+      color: #006d77;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <div class="login-container">
+    <h1>Welcome To MarkMyDay</h1>
+    <h2>Welcome to your login page built by us — <strong>MARKMYDAY</strong></h2>
+    <form id="loginForm" aria-describedby="loginMsg" novalidate>
+      <label for="studentId">Student ID</label>
+      <input type="text" id="studentId" name="studentId" placeholder="Enter your student ID" autocomplete="username" required />
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" placeholder="Enter your email" autocomplete="email" required />
+      <div id="loginMsg" class="msg" role="alert" aria-live="assertive"></div>
+      <button type="submit">Login</button>
+    </form>
+    <div class="link">
+      Don't have an account? <a href="register.html">Register here</a>
+    </div>
+  </div>
+
+<script>
+  // Node Animation
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let width, height;
+  let nodes = [];
+  const nodeCount = 40;
+  const maxDist = 150;
+
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  for (let i = 0; i < nodeCount; i++) {
+    nodes.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 1.5,
+      vy: (Math.random() - 0.5) * 1.5
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    // Draw connections
+    for (let i = 0; i < nodeCount; i++) {
+      for (let j = i + 1; j < nodeCount; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxDist) {
+          ctx.strokeStyle = 'rgba(0,109,119,' + (1 - dist / maxDist) + ')';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    // Draw and move nodes
+    for (let i = 0; i < nodeCount; i++) {
+      const n = nodes[i];
+      n.x += n.vx;
+      n.y += n.vy;
+
+      if (n.x < 0 || n.x > width) n.vx *= -1;
+      if (n.y < 0 || n.y > height) n.vy *= -1;
+
+      ctx.fillStyle = '#006d77';
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  // Login with backend API
+  const loginForm = document.getElementById('loginForm');
+  const loginMsg = document.getElementById('loginMsg');
+
+  loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    loginMsg.textContent = '';
+    loginMsg.style.color = '#dc2626';
+
+    const studentId = loginForm.studentId.value.trim();
+    const email = loginForm.email.value.trim();
+
+    if (!studentId) {
+      loginMsg.textContent = "Please enter your Student ID.";
+      return;
+    }
+    if (!email) {
+      loginMsg.textContent = "Please enter your email address.";
+      return;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      loginMsg.textContent = "Please enter a valid email address.";
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: studentId, email: email })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        loginMsg.textContent = data.error || 'Login failed';
+        return;
+      }
+      // Store token in localStorage under key 'token' (as user.html script expects)
+      localStorage.setItem('token', data.token);
+
+      loginMsg.style.color = "#15803d";
+      loginMsg.textContent = "Login successful. Redirecting...";
+
+      setTimeout(() => {
+        window.location.href = 'user.html';
+      }, 1200);
+    } catch (error) {
+      loginMsg.textContent = 'Network error. Please try again later.';
+    }
+  });
+</script>
+
+</body>
+</html>

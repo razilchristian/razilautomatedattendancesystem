@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Student Management - FacultyFlow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+  body {
+    margin:0; min-height: 100vh;
+    font-family: 'Roboto', sans-serif;
+    background: #f5f8fa;
+    color:#223365;
+    position: relative;
+    overflow-x: hidden;
+  }
+  canvas#bgCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.32;
+  }
+  .navbar {
+    width:100%;
+    background:#178d85;
+    color:#e4fbf9;
+    display:flex;
+    align-items:center;
+    padding:0 24px;
+    height:60px;
+    box-shadow:0 4px 20px #08948c13;
+    position:fixed;
+    top:0;
+    z-index:10;
+  }
+  .navbar .logo {
+    font-weight:700;
+    font-size:1.6rem;
+    letter-spacing:2px;
+    margin-right:36px;
+    user-select:none;
+  }
+  nav {
+    display:flex;
+    gap:34px;
+    flex-grow:1;
+  }
+  nav a {
+    color:#dcf7f5;
+    text-decoration:none;
+    font-weight:500;
+    font-size:1.07rem;
+    padding:8px 14px;
+    border-radius:8px;
+    transition:background-color 0.3s, color 0.2s;
+  }
+  nav a:hover, nav a.active {
+    color:#13a493;
+    background-color:#e7f8f7;
+  }
+  .navbar .right-info {
+    margin-left:auto;
+    font-size:1.01rem;
+    opacity:.9;
+    user-select:none;
+  }
+  main {
+    margin: 90px auto 48px auto;
+    max-width: 980px;
+    padding: 0 18px;
+    position: relative;
+    z-index: 2;
+    color:#223365;
+  }
+  h1 {
+    font-weight: 700;
+    font-size: 2.38rem;
+    margin-bottom: 24px;
+    color: #178d85;
+    text-align: center;
+    letter-spacing: 1px;
+    text-shadow: 0 0 18px #6eebe024;
+    user-select: none;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  label {
+    font-weight: 600;
+  }
+  select, input[type="search"] {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #a0dae9;
+    font-size: 1rem;
+    font-family: inherit;
+    min-width: 140px;
+  }
+  input[type="search"] {
+    flex-grow: 1;
+    min-width: 180px;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 0 32px #10b5b99c;
+    background: white;
+    font-size: 1.1rem;
+    color: #223365;
+  }
+  thead {
+    background: #178d85;
+    color: #e2f9f7;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  th, td {
+    padding: 16px 14px;
+    text-align: left;
+    border-bottom: 1px solid #d4f6f3;
+  }
+  tbody tr:hover {
+    background-color: #dbf4f1;
+  }
+  @media (max-width: 800px) {
+    main {
+      padding: 0 2vw;
+    }
+    table {
+      font-size: 1rem;
+    }
+    select, input[type="search"] {
+      min-width: 100px;
+    }
+  }
+  @media (max-width: 500px) {
+    .filters {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+<header class="navbar" role="navigation" aria-label="Primary navigation">
+  <span class="logo">Attend Core</span>
+  <nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="device.html">Devices</a>
+    <a href="location.html">Locations</a>
+    <a href="scan.html">Scans</a>
+    <a href="student.html" class="active" aria-current="page">Students</a>
+    <a href="reports.html">Reports</a>
+    <a href="settings.html">Settings</a>
+  </nav>
+  <span class="right-info">Teapot Elementary | Dan | System Manager</span>
+</header>
+<main tabindex="-1">
+  <h1>Student Management</h1>
+  <section>
+    <div class="header">
+      <button id="addStudentBtn" class="add-student-btn" aria-label="Add new student" style="padding:8px 16px;border-radius:12px;border:none;background:#178d85;color:#e4fbf9;font-weight:700;cursor:pointer;box-shadow:0 0 20px #12b8a4cc;transition:background-color 0.3s;">Add New Student</button>
+      <input type="search" id="searchInput" placeholder="Search students..." aria-label="Search students" />
+    </div>
+    <div class="filters" aria-label="Filter students">
+      <label for="semesterSelect">Semester:</label>
+      <select id="semesterSelect" aria-controls="studentsTableBody" aria-label="Select Semester">
+        <option value="">All</option>
+        <option value="1">Semester 1</option>
+        <option value="2">Semester 2</option>
+        <option value="3" selected>Semester 3</option>
+        <option value="4">Semester 4</option>
+        <option value="5">Semester 5</option>
+        <option value="6">Semester 6</option>
+        <option value="7">Semester 7</option>
+        <option value="8">Semester 8</option>
+      </select>
+      <label for="batchSelect">Batch:</label>
+      <select id="batchSelect" aria-controls="studentsTableBody" aria-label="Select Batch">
+        <option value="">All</option>
+        <option value="morning" selected>Morning</option>
+        <option value="noon">Noon</option>
+      </select>
+      <label for="classroomSelect">Classroom:</label>
+      <select id="classroomSelect" aria-controls="studentsTableBody" aria-label="Select Classroom">
+        <option value="">All</option>
+        <option value="602" selected>602</option>
+      </select>
+    </div>
+    <div class="table-wrap" style="overflow-x:auto;">
+      <table aria-label="List of registered students">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Branch</th>
+            <th>Batch</th>
+            <th>Semester</th>
+            <th>Classroom</th>
+          </tr>
+        </thead>
+        <tbody id="studentsTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+<script>
+  const semesterSelect = document.getElementById('semesterSelect');
+  const batchSelect = document.getElementById('batchSelect');
+  const classroomSelect = document.getElementById('classroomSelect');
+  const searchInput = document.getElementById('searchInput');
+  const studentsTableBody = document.getElementById('studentsTableBody');
+  let allStudents = [];
+  // Static fields for batch, semester, classroom
+  function parseBatchSemesterClassroom(row) {
+    return {
+      batch: 'morning',
+      semester: '3',
+      classroom: '602'
+    };
+  }
+  function renderStudents() {
+    const searchFilter = searchInput.value.trim().toLowerCase();
+    const semesterFilter = semesterSelect.value;
+    const batchFilter = batchSelect.value;
+    const classroomFilter = classroomSelect.value;
+    studentsTableBody.innerHTML = '';
+    const filtered = allStudents.filter(s => {
+      const matchBatch = !batchFilter || s.batch === batchFilter;
+      const matchSemester = !semesterFilter || s.semester === semesterFilter;
+      const matchClassroom = !classroomFilter || s.classroom === classroomFilter;
+      const matchSearch =
+        !searchFilter ||
+        (s.Name && s.Name.toLowerCase().includes(searchFilter)) ||
+        (s.Branch && s.Branch.toLowerCase().includes(searchFilter));
+      return matchBatch && matchSemester && matchClassroom && matchSearch;
+    });
+    if (filtered.length === 0) {
+      studentsTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#888;">No students found.</td></tr>';
+      return;
+    }
+    filtered.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${s.Name || ''}</td>
+        <td>${s.Branch || ''}</td>
+        <td>${s.batch}</td>
+        <td>${s.semester}</td>
+        <td>${s.classroom}</td>
+      `;
+      studentsTableBody.appendChild(tr);
+    });
+  }
+  window.onload = () => {
+    Papa.parse('602 Attendance sheet.csv', {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        allStudents = results.data.map(row => {
+          let cleanedRow = {};
+          Object.keys(row).forEach(k => { cleanedRow[k.trim()] = row[k]; });
+          const {batch, semester, classroom} = parseBatchSemesterClassroom(cleanedRow);
+          return {...cleanedRow, batch, semester, classroom};
+        });
+        renderStudents();
+      },
+      error: function(err) {
+        console.error('Error loading CSV:', err);
+        studentsTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#f88;">Failed to load attendance data.</td></tr>';
+      }
+    });
+    [semesterSelect, batchSelect, classroomSelect, searchInput].forEach(el => {
+      el.addEventListener('change', renderStudents);
+      el.addEventListener('input', renderStudents);
+    });
+  };
+</script>
+<script>
+  // Background Node Animation
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let width, height, nodes = [];
+  const nodeCount = 38, maxDist = 140;
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  nodes = [];
+  for(let i=0; i<nodeCount; i++){
+    nodes.push({
+      x: Math.random()*width,
+      y: Math.random()*height,
+      vx: (Math.random()-0.5)*1.35,
+      vy: (Math.random()-0.5)*1.35,
+    });
+  }
+  function animate(){
+    ctx.clearRect(0,0,width,height);
+    for(let i=0; i<nodeCount; i++){
+      for(let j=i+1; j<nodeCount; j++){
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist < maxDist){
+          ctx.strokeStyle = `rgba(0,109,119,${1-dist/maxDist})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    nodes.forEach((n)=>{
+      n.x+=n.vx;
+      n.y+=n.vy;
+      if(n.x<0||n.x>width) n.vx*=-1;
+      if(n.y<0||n.y>height) n.vy*=-1;
+      ctx.fillStyle = '#198b9b';
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,4,0,Math.PI*2);
+      ctx.fill();
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+</script>
+</body>
+</html>

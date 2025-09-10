@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Device Management - FacultyFlow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+  body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: #f5f8fa url('https://www.transparenttextures.com/patterns/connected.png');
+    color: #223365;
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  canvas#bgCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.32;
+  }
+  .navbar {
+    width: 100%;
+    background: #178d85;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    height: 60px;
+    box-shadow: 0 4px 20px #08948c13;
+    position: fixed;
+    top: 0; z-index: 10;
+  }
+  .navbar .logo {
+    font-weight: 700;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    margin-right: 36px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .navbar nav {
+    display: flex;
+    gap: 34px;
+    flex-grow: 1;
+  }
+  .navbar nav a {
+    color: #dcf7f5;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1.07rem;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.2s;
+  }
+  .navbar nav a:hover, .navbar nav a.active {
+    color: #13a493;
+    background-color: #e7f8f7;
+  }
+  .navbar .user-info {
+    font-size: 1.01rem;
+    opacity: .9;
+    margin-left: 18px;
+    user-select: none;
+    color: #e2fcfd;
+  }
+  main {
+    margin: 90px auto 48px auto;
+    max-width: 980px;
+    padding: 0 18px;
+    position: relative;
+    z-index: 2;
+  }
+  h1 {
+    font-size: 2.38rem;
+    margin-bottom: 18px;
+    font-weight: 700;
+    color: #178d85;
+    text-align: center;
+    letter-spacing: 1px;
+    text-shadow: 0 0 18px #6eebe024;
+  }
+  section {
+    background: #fff;
+    border-radius: 26px;
+    box-shadow: 0 12px 40px #10c8c01c;
+    padding: 28px 36px 34px 36px;
+    margin-bottom: 38px;
+  }
+  .device-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 26px;
+  }
+  .device-list-header h2 {
+    color: #178d85;
+    font-weight: 700;
+    font-size: 1.7rem;
+    margin: 0;
+  }
+  button.add-device-btn {
+    background: #178d85;
+    color: #e4fbf9;
+    font-weight: 700;
+    font-size: 1.14rem;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    box-shadow: 0 0 26px #21c2b79d;
+    transition: background-color 0.28s;
+  }
+  button.add-device-btn:hover {
+    background-color: #0f665f;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 32px #10b5b99c;
+    font-size: 1.1rem;
+    background: white;
+  }
+  thead {
+    background: #178d85;
+    color: #ddfaf9;
+  }
+  th, td {
+    padding: 16px 14px;
+    text-align: left;
+    border-bottom: 1px solid #d4f6f3;
+  }
+  tbody tr:hover {
+    background-color: #dbf4f1;
+  }
+  td.status-online {
+    color: #138a37;
+    font-weight: 700;
+  }
+  td.status-offline {
+    color: #bb2f35;
+    font-weight: 700;
+  }
+  /* Modal */
+  #deviceModal {
+    display: none;
+    position: fixed; z-index: 99999999;
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    background-color: rgba(23,141,133,0.8);
+    align-items: center; justify-content: center;
+  }
+  #deviceModal.active {
+    display: flex;
+  }
+  .modal-content {
+    background: #e4fbf9;
+    padding: 34px 32px;
+    border-radius: 22px;
+    width: 400px;
+    box-shadow: 0 0 36px #0fc4a07d;
+    position: relative;
+  }
+  .modal-content h3 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #11715b;
+    margin-bottom: 26px;
+  }
+  .modal-content label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 700;
+    color: #165346;
+  }
+  .modal-content input, .modal-content select {
+    width: 100%;
+    padding: 12px 18px;
+    margin-bottom: 20px;
+    border-radius: 14px;
+    border: 2px solid #0fc4a086;
+    font-family: inherit;
+    font-size: 1.12rem;
+    transition: border-color 0.25s ease;
+  }
+  .modal-content input:focus, .modal-content select:focus {
+    outline: none;
+    border-color: #0db89e99;
+    box-shadow: 0 0 26px #0db89e99;
+  }
+  .modal-content button {
+    background-color: #0db89e;
+    color: white;
+    font-size: 1.2rem;
+    padding: 14px 0;
+    border: none;
+    border-radius: 25px;
+    width: 100%;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 0 22px #0cc2a1cc;
+    transition: background-color 0.3s ease, transform 0.17s ease;
+  }
+  .modal-content button:hover {
+    background-color: #0a8c79;
+    transform: scale(1.05);
+  }
+  .modal-content button:active {
+    transform: scale(0.96);
+  }
+  .close-btn {
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    font-size: 2.4rem;
+    color: #0db89e;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <div class="navbar" role="navigation" aria-label="Primary navigation">
+    <span class="logo">FacultyFlow</span>
+   <nav>
+  <a href="dashboard.html">Dashboard</a>
+  <a href="device.html" class="active">Devices</a>
+  <a href="location.html">Locations</a>
+  <a href="scan.html">Scans</a>
+  <a href="student.html">Students</a>
+  <a href="reports.html">Reports</a>
+  <a href="settings.html">Settings</a>
+</nav>
+
+    <span class="user-info" aria-label="Logged in user and school">Teapot Elementary | Dan | System Manager</span>
+  </div>
+  <main>
+    <section>
+      <div class="device-list-header">
+        <h2>Registered Devices</h2>
+        <button id="addDeviceBtn" class="add-device-btn">Add New Device</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Device ID</th>
+            <th>Model</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Last Seen</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="deviceTableBody"></tbody>
+      </table>
+    </section>
+  </main>
+  <div id="deviceModal" role="dialog" aria-modal="true" aria-labelledby="deviceModalTitle">
+    <div class="modal-content">
+      <span class="close-btn" role="button" aria-label="Close modal">&times;</span>
+      <h3 id="deviceModalTitle">Add New Device</h3>
+      <form id="deviceForm">
+        <label for="deviceIdInput">Device ID</label>
+        <input type="text" id="deviceIdInput" required placeholder="Enter Device ID" />
+        <label for="deviceModelInput">Model</label>
+        <input type="text" id="deviceModelInput" required placeholder="e.g. Zebra DS3678" />
+        <label for="deviceLocationInput">Location</label>
+        <input type="text" id="deviceLocationInput" placeholder="e.g. Room 310" />
+        <label for="deviceStatusSelect">Status</label>
+        <select id="deviceStatusSelect" required>
+          <option value="">Select status</option>
+          <option value="online">Online</option>
+          <option value="offline">Offline</option>
+          <option value="maintenance">Maintenance</option>
+        </select>
+        <button type="submit">Save Device</button>
+      </form>
+    </div>
+  </div>
+<script>
+  // Background Node Animation
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let width, height, nodes = [];
+  const nodeCount = 38, maxDist = 140;
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  nodes = [];
+  for(let i=0; i<nodeCount; i++){
+    nodes.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random()-0.5)*1.35,
+      vy: (Math.random()-0.5)*1.35,
+    });
+  }
+  function animate(){
+    ctx.clearRect(0,0,width,height);
+    for(let i=0; i<nodeCount; i++){
+      for(let j=i+1; j<nodeCount; j++){
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist < maxDist){
+          ctx.strokeStyle = `rgba(0,109,119,${1-dist/maxDist})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    nodes.forEach(n=>{
+      n.x+=n.vx;
+      n.y+=n.vy;
+      if(n.x<0|| n.x>width) n.vx*=-1;
+      if(n.y<0|| n.y>height) n.vy*=-1;
+      ctx.fillStyle = '#198b9b';
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,4,0,Math.PI*2);
+      ctx.fill();
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  // Device data and UI
+  let devices = [
+    {id:'DEV12345', model:'Zebra DS3678', location:'Room 310', status:'online', lastSeen:'2025-09-01 08:45'},
+    {id:'DEV56789', model:'Honeywell Xenon', location:'Room 410', status:'offline', lastSeen:'2025-08-31 17:20'}
+  ];
+  const deviceTableBody = document.getElementById('deviceTableBody');
+  const addDeviceBtn = document.getElementById('addDeviceBtn');
+  const deviceModal = document.getElementById('deviceModal');
+  const deviceForm = document.getElementById('deviceForm');
+  const closeModalBtn = deviceModal.querySelector('.close-btn');
+  const deviceIdInput = document.getElementById('deviceIdInput');
+  const deviceModelInput = document.getElementById('deviceModelInput');
+  const deviceLocationInput = document.getElementById('deviceLocationInput');
+  const deviceStatusSelect = document.getElementById('deviceStatusSelect');
+
+  function renderDeviceTable(){
+    deviceTableBody.innerHTML = '';
+    if(devices.length === 0){
+      deviceTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#aaa;">No devices registered.</td></tr>';
+      return;
+    }
+    devices.forEach((device,index)=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${device.id}</td><td>${device.model}</td><td>${device.location || '-'}</td><td class="status-${device.status}">${device.status.charAt(0).toUpperCase()+device.status.slice(1)}</td><td>${device.lastSeen || '-'}</td><td><button onclick="editDevice(${index})" style="margin-right:5px;">Edit</button><button onclick="deleteDevice(${index})">Delete</button></td>`;
+      deviceTableBody.appendChild(tr);
+    });
+  }
+  addDeviceBtn.addEventListener('click',()=>openModal());
+  function openModal(device=null){
+    deviceForm.reset();
+    if(device){
+      deviceIdInput.value = device.id;
+      deviceModelInput.value = device.model;
+      deviceLocationInput.value = device.location;
+      deviceStatusSelect.value = device.status;
+      deviceModal.dataset.editIndex = devices.indexOf(device);
+      document.getElementById('deviceModalTitle').textContent="Edit Device";
+    } else {
+      delete deviceModal.dataset.editIndex;
+      document.getElementById('deviceModalTitle').textContent="Add New Device";
+    }
+    deviceModal.style.display = "flex";
+  }
+  closeModalBtn.addEventListener('click',()=>{deviceModal.style.display="none";});
+  window.addEventListener('click', e=>{if(e.target === deviceModal) deviceModal.style.display="none";});
+
+  deviceForm.addEventListener('submit', e=>{
+    e.preventDefault();
+    const id = deviceIdInput.value.trim();
+    const model = deviceModelInput.value.trim();
+    const location = deviceLocationInput.value.trim();
+    const status = deviceStatusSelect.value;
+
+    if(!id || !model || !status){
+      alert("Please fill in all required fields.");
+      return;
+    }
+    const editIndex = deviceModal.dataset.editIndex;
+    if(editIndex!==undefined){
+      devices[editIndex] = {id, model, location, status, lastSeen: devices[editIndex].lastSeen};
+    }else{
+      const now = new Date();
+      const lastSeen = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+      devices.push({id, model, location, status, lastSeen});
+    }
+    deviceModal.style.display = "none";
+    renderDeviceTable();
+  });
+  function editDevice(index){ openModal(devices[index]); }
+  function deleteDevice(index){
+    if(confirm(`Confirm delete device: ${devices[index].id}?`)){
+      devices.splice(index,1);
+      renderDeviceTable();
+    }
+  }
+  renderDeviceTable();
+</script>
+</body>
+</html>

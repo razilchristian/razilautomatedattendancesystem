@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Location Management - FacultyFlow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+  body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: #f5f8fa url('https://www.transparenttextures.com/patterns/connected.png');
+    color: #223365;
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  canvas#bgCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.32;
+  }
+  .navbar {
+    width: 100%;
+    background: #178d85;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    height: 60px;
+    box-shadow: 0 4px 20px #08948c13;
+    position: fixed;
+    top: 0; z-index: 10;
+  }
+  .navbar .logo {
+    font-weight: 700;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    margin-right: 36px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .navbar nav {
+    display: flex;
+    gap: 34px;
+    flex-grow: 1;
+  }
+  .navbar nav a {
+    color: #dcf7f5;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1.07rem;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.2s;
+  }
+  .navbar nav a:hover, .navbar nav a.active {
+    color: #13a493;
+    background-color: #e7f8f7;
+  }
+  .navbar .user-info {
+    font-size: 1.01rem;
+    opacity: .9;
+    margin-left: 18px;
+    user-select: none;
+    color: #e2fcfd;
+  }
+  main {
+    margin: 90px auto 48px auto;
+    max-width: 980px;
+    padding: 0 18px;
+    position: relative;
+    z-index: 2;
+  }
+  h1 {
+    font-size: 2.38rem;
+    margin-bottom: 18px;
+    font-weight: 700;
+    color: #178d85;
+    text-align: center;
+    letter-spacing: 1px;
+    text-shadow: 0 0 18px #6eebe024;
+  }
+  section {
+    background: #fff;
+    border-radius: 26px;
+    box-shadow: 0 12px 40px #10c8c01c;
+    padding: 28px 36px 34px 36px;
+    margin-bottom: 38px;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header h2 {
+    color: #178d85;
+    font-weight: 700;
+    font-size: 1.7rem;
+    margin: 0;
+  }
+  button.add-location-btn {
+    background: #178d85;
+    color: #e4fbf9;
+    font-weight: 700;
+    font-size: 1.12rem;
+    padding: 14px 22px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    box-shadow: 0 0 26px #21c2b79d;
+    transition: background-color 0.28s;
+  }
+  button.add-location-btn:hover {
+    background-color: #0f665f;
+  }
+  input#searchInput {
+    flex-grow: 1;
+    max-width: 320px;
+    padding: 12px 16px;
+    font-size: 1.05rem;
+    border-radius: 14px;
+    border: 1.8px solid #4fd5cc93;
+    box-shadow: 0 0 18px #29c9c757;
+    transition: border-color 0.3s ease;
+  }
+  input#searchInput:focus {
+    outline: none;
+    border-color: #1dbba8;
+    box-shadow: 0 0 26px #1dbba899;
+  }
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 0 32px #10b5b99c;
+    font-size: 1.1rem;
+  }
+  thead {
+    background: #178d85;
+    color: #ddfaf9;
+  }
+  th, td {
+    padding: 16px 14px;
+    text-align: left;
+    border-bottom: 1px solid #d4f6f3;
+  }
+  tbody tr:hover {
+    background-color: #dbf4f1;
+  }
+  td.status-active {
+    color: #138a37;
+    font-weight: 700;
+  }
+  td.status-inactive {
+    color: #bb2f35;
+    font-weight: 700;
+  }
+  td.actions-cell button {
+    margin-right: 10px;
+    padding: 8px 18px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 0 18px #057857aa;
+    transition: background-color 0.3s ease;
+  }
+  td.actions-cell button.edit-btn {
+    background-color: #178d85;
+    color: #e2f9f7;
+  }
+  td.actions-cell button.edit-btn:hover {
+    background-color: #0f665f;
+  }
+  td.actions-cell button.delete-btn {
+    background-color: #be2f34;
+    color: #fde3e3;
+  }
+  td.actions-cell button.delete-btn:hover {
+    background-color: #911b22;
+  }
+  /* Modal */
+  #locationModal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
+    background-color: rgba(23, 141, 133, 0.85);
+    align-items: center;
+    justify-content: center;
+  }
+  #locationModal.active {
+    display: flex;
+  }
+  .modal-content {
+    background: #e4fbf9;
+    border-radius: 22px;
+    padding: 38px 38px 36px 38px;
+    width: 420px;
+    box-shadow: 0 0 36px #0fc4a07d;
+    position: relative;
+  }
+  .modal-content h3 {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: #11715b;
+    margin-bottom: 26px;
+  }
+  .modal-content label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 700;
+    color: #165346;
+  }
+  .modal-content input, .modal-content select {
+    width: 100%;
+    padding: 12px 18px;
+    margin-bottom: 20px;
+    border-radius: 14px;
+    border: 2px solid #0fc4a086;
+    font-family: inherit;
+    font-size: 1.12rem;
+    transition: border-color 0.25s ease;
+  }
+  .modal-content input:focus, .modal-content select:focus {
+    outline: none;
+    border-color: #0db89e99;
+    box-shadow: 0 0 26px #0db89e99;
+  }
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+  }
+  .modal-footer button.cancel-btn {
+    background: transparent;
+    border: 2px solid #0ba586cc;
+    color: #0b8e71;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 12px 28px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.23s ease;
+  }
+  .modal-footer button.cancel-btn:hover {
+    background: #cdf3eb;
+  }
+  .modal-content button[type="submit"] {
+    background-color: #0db89e;
+    color: white;
+    font-size: 1.2rem;
+    padding: 14px 0;
+    border: none;
+    border-radius: 25px;
+    width: 100%;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 0 22px #0cc2a1cc;
+    transition: background-color 0.3s ease, transform 0.17s ease;
+  }
+  .modal-content button[type="submit"]:hover {
+    background-color: #0a8c79;
+    transform: scale(1.05);
+  }
+  .modal-content button[type="submit"]:active {
+    transform: scale(0.96);
+  }
+  .close-btn {
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    font-size: 2.4rem;
+    color: #0db89e;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+  }
+  @media (max-width: 650px) {
+    main {
+      margin: 90px 14px 70px 14px;
+      padding: 0 8px;
+    }
+    .modal-content {
+      width: 90vw;
+      padding: 28px 24px;
+    }
+  }
+</style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+
+  <div class="navbar" role="navigation" aria-label="Primary navigation">
+    <span class="logo">FacultyFlow</span>
+   <nav>
+  <a href="dashboard.html">Dashboard</a>
+  <a href="device.html">Devices</a>
+  <a href="location.html" class="active">Locations</a>
+  <a href="scan.html">Scans</a>
+  <a href="student.html">Students</a>
+  <a href="reports.html">Reports</a>
+  <a href="settings.html">Settings</a>
+</nav>
+
+    <span class="user-info" aria-label="Logged in user and school">Teapot Elementary | Dan | System Manager</span>
+  </div>
+
+  <main role="main" tabindex="-1">
+    <h1>Location Management</h1>
+    <section>
+      <div class="header">
+        <button id="addLocationBtn" class="add-location-btn" aria-label="Add new location">Add New Location</button>
+        <input type="search" id="searchInput" placeholder="Search Locations..." aria-label="Search locations" />
+      </div>
+      <table aria-label="List of registered locations" role="table">
+        <thead>
+          <tr>
+            <th scope="col">Location Code</th>
+            <th scope="col">Description</th>
+            <th scope="col">Status</th>
+            <th scope="col" style="min-width: 150px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="locationsTableBody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <div id="locationModal" role="dialog" aria-modal="true" aria-labelledby="locationModalTitle">
+    <div class="modal-content">
+      <span class="close-btn" role="button" aria-label="Close modal">&times;</span>
+      <h3 id="locationModalTitle">Add New Location</h3>
+      <form id="locationForm">
+        <label for="locationCodeInput">Location Code</label>
+        <input type="text" id="locationCodeInput" required placeholder="Enter location code" aria-required="true" />
+        <label for="locationDescInput">Description</label>
+        <input type="text" id="locationDescInput" placeholder="Enter description" />
+        <label for="locationStatusSelect">Status</label>
+        <select id="locationStatusSelect" required aria-required="true">
+          <option value="">Select status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <div class="modal-footer">
+          <button type="button" class="cancel-btn" aria-label="Cancel adding/editing location">Cancel</button>
+          <button type="submit">Save Location</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+  const locations = [
+    { code: "ROOM101", description: "Computer Lab", status: "active" },
+    { code: "ROOM102", description: "Lecture Hall A", status: "active" },
+    { code: "LIB001", description: "Library", status: "inactive" }
+  ];
+
+  const locationsTableBody = document.getElementById('locationsTableBody');
+  const addLocationBtn = document.getElementById('addLocationBtn');
+  const locationModal = document.getElementById('locationModal');
+  const closeBtn = locationModal.querySelector('.close-btn');
+  const cancelBtn = locationModal.querySelector('.cancel-btn');
+  const locationForm = document.getElementById('locationForm');
+  const locationCodeInput = document.getElementById('locationCodeInput');
+  const locationDescInput = document.getElementById('locationDescInput');
+  const locationStatusSelect = document.getElementById('locationStatusSelect');
+  const searchInput = document.getElementById('searchInput');
+  let editIndex = null;
+
+  function renderLocations(filter = '') {
+    locationsTableBody.innerHTML = '';
+    const filtered = locations.filter(loc => 
+      loc.code.toLowerCase().includes(filter.toLowerCase()) || 
+      (loc.description && loc.description.toLowerCase().includes(filter.toLowerCase()))
+    );
+    if(filtered.length === 0) {
+      locationsTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: #ccc;">No locations found.</td></tr>';
+      return;
+    }
+    filtered.forEach((loc, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${loc.code}</td>
+        <td>${loc.description || '-'}</td>
+        <td class="status-${loc.status}">${loc.status.charAt(0).toUpperCase() + loc.status.slice(1)}</td>
+        <td class="actions-cell">
+          <button class="edit-btn" aria-label="Edit location ${loc.code}">Edit</button>
+          <button class="delete-btn" aria-label="Delete location ${loc.code}">Delete</button>
+        </td>
+      `;
+
+      locationsTableBody.appendChild(tr);
+
+      tr.querySelector('.edit-btn').onclick = () => { editIndex = locations.indexOf(loc); openModal(loc); };
+      tr.querySelector('.delete-btn').onclick = () => {
+        if(confirm(`Are you sure you want to delete location '${loc.code}'?`)) {
+          locations.splice(locations.indexOf(loc),1);
+          renderLocations(searchInput.value);
+        }
+      };
+    });
+  }
+
+  function openModal(loc = null) {
+    locationForm.reset();
+    locationModal.classList.add('active');
+    if(loc) {
+      locationCodeInput.value = loc.code;
+      locationDescInput.value = loc.description || '';
+      locationStatusSelect.value = loc.status;
+      document.getElementById('locationModalTitle').textContent = "Edit Location";
+    } else {
+      editIndex = null;
+      document.getElementById('locationModalTitle').textContent = "Add New Location";
+    }
+    setTimeout(() => locationCodeInput.focus(), 100);
+  }
+
+  function closeModal() {
+    locationModal.classList.remove('active');
+  }
+
+  addLocationBtn.onclick = () => openModal();
+  closeBtn.onclick = closeModal;
+  cancelBtn.onclick = closeModal;
+  window.onclick = e => {
+    if(e.target === locationModal) closeModal();
+  };
+  document.addEventListener('keydown', e => {
+    if (locationModal.classList.contains('active') && e.key === "Escape") closeModal();
+  });
+
+  locationForm.onsubmit = function(e) {
+    e.preventDefault();
+    const code = locationCodeInput.value.trim();
+    const desc = locationDescInput.value.trim();
+    const status = locationStatusSelect.value;
+    if(!code || !status) {
+      alert("Please fill all required fields.");
+      return;
+    }
+    if(editIndex !== null) {
+      locations[editIndex] = { code, description: desc, status };
+    } else {
+      if(locations.some(l => l.code.toLowerCase() === code.toLowerCase())) {
+        alert("Location code already exists.");
+        return;
+      }
+      locations.push({ code, description: desc, status });
+    }
+    closeModal();
+    renderLocations(searchInput.value);
+  };
+
+  searchInput.oninput = () => renderLocations(searchInput.value);
+
+  renderLocations();
+
+  // Background Node Animation
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let width, height, nodes = [];
+  const nodeCount = 38,
+    maxDist = 140;
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  nodes = [];
+  for (let i = 0; i < nodeCount; i++) {
+    nodes.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 1.35,
+      vy: (Math.random() - 0.5) * 1.35,
+    });
+  }
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    for (let i = 0; i < nodeCount; i++) {
+      for (let j = i + 1; j < nodeCount; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxDist) {
+          ctx.strokeStyle = `rgba(0,109,119,${1 - dist / maxDist})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    nodes.forEach((n) => {
+      n.x += n.vx;
+      n.y += n.vy;
+      if (n.x < 0 || n.x > width) n.vx *= -1;
+      if (n.y < 0 || n.y > height) n.vy *= -1;
+      ctx.fillStyle = '#198b9b';
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+</script>
+</body>
+</html>
